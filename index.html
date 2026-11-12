@@ -71,6 +71,18 @@
     font-weight: 700;
   }
 
+  .limit-badge {
+    display: inline-block;
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fcd34d;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 18px;
+  }
+
   .date-box {
     display: inline-block;
     background: linear-gradient(135deg, #667eea, #764ba2);
@@ -146,6 +158,18 @@
     margin-top: 30px;
     line-height: 1.5;
   }
+
+  .limit-warning {
+    background: #fef2f2;
+    border-left: 4px solid #ef4444;
+    padding: 15px 20px;
+    border-radius: 8px;
+    text-align: left;
+    font-size: 15px;
+    color: #991b1b;
+    margin-top: 20px;
+    line-height: 1.5;
+  }
 </style>
 </head>
 <body>
@@ -157,6 +181,7 @@
     <span class="emoji">🚀</span>
     <h1>Сертификат на телепортацию Никиты в школу утром, к первому уроку</h1>
     <p>Настоящий документ подтверждает ваше право <span class="highlight">не вставать рано</span>, пока Никита телепортируется в школу. Действует бессрочно (по будням).</p>
+    <span class="limit-badge">🎟️ Доступно 5 заявок в месяц</span>
     <button onclick="showPage(2)">Далее →</button>
   </div>
 
@@ -164,14 +189,19 @@
   <div class="page" id="page2">
     <span class="emoji">📅</span>
     <h2>Выберите дату телепортации</h2>
-    <p>В какой день Никита должен оказаться в школе к первому уроку?</p>
+    <p id="limitInfo">В какой день Никита должен оказаться в школе к первому уроку?</p>
 
     <!-- ВАЖНО: замените ВАШ_ENDPOINT на URL из Formspree -->
-    <form id="teleportForm" action="https://formspree.io/f/xdegopyn" method="POST">
+    <form id="teleportForm" action="https://formspree.io/f/ВАШ_ENDPOINT" method="POST">
       <input type="date" id="dateInput" name="Выбранная дата" required>
       <input type="hidden" name="Дата (читаемый вид)" id="formattedDateHidden">
       <button type="submit" id="submitBtn">Подтвердить дату</button>
     </form>
+
+    <!-- Предупреждение при исчерпании лимита -->
+    <div class="limit-warning" id="limitWarning" style="display:none;">
+      ⛔ Вы использовали все 5 заявок на этот месяц. Новые заявки станут доступны в следующем месяце.
+    </div>
   </div>
 
   <!-- СТРАНИЦА 3: Подтверждение -->
@@ -181,6 +211,7 @@
     <p>Вы выбрали дату:</p>
     <div class="date-box" id="chosenDate">—</div>
     <p>Скоро менеджер свяжется с вами для уточнения деталей.</p>
+    <p id="remainingInfo" class="small-text"></p>
     <div class="ps">
       💡 Кстати, менеджер будет не против, если у вас будет настроение
       <b>заехать к вам после выполнения заказа</b>. 😉
@@ -191,20 +222,88 @@
 </div>
 
 <script>
-  // Переключение между страницами
+  // === Настройки лимита ===
+  var MONTHLY_LIMIT = 5;
+  var STORAGE_KEY = 'teleport_requests';
+
+  // === Вспомогательные функции для работы с localStorage ===
+  function getStorageData() {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      return { month: getCurrentMonthKey(), count: 0 };
+    }
+    try {
+      var data = JSON.parse(raw);
+      // Если наступил новый месяц — сбрасываем счётчик
+      if (data.month !== getCurrentMonthKey()) {
+        return { month: getCurrentMonthKey(), count: 0 };
+      }
+      return data;
+    } catch (e) {
+      return { month: getCurrentMonthKey(), count: 0 };
+    }
+  }
+
+  function saveStorageData(data) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  function getCurrentMonthKey() {
+    var now = new Date();
+    return now.getFullYear() + '-' + (now.getMonth() + 1);
+  }
+
+  function getRemaining() {
+    var data = getStorageData();
+    return Math.max(0, MONTHLY_LIMIT - data.count);
+  }
+
+  // === Переключение между страницами ===
   function showPage(num) {
     document.querySelectorAll('.page').forEach(function(p) {
       p.classList.remove('active');
     });
     document.getElementById('page' + num).classList.add('active');
+
+    if (num === 2) {
+      updateLimitUI();
+    }
   }
 
-  // При отправке формы: проверяем дату, сохраняем читаемый вид, отправляем на Formspree
+  // === Обновление интерфейса на странице 2 ===
+  function updateLimitUI() {
+    var remaining = getRemaining();
+    var limitInfo = document.getElementById('limitInfo');
+    var limitWarning = document.getElementById('limitWarning');
+    var form = document.getElementById('teleportForm');
+
+    if (remaining > 0) {
+      limitInfo.textContent = 'В какой день Никита должен оказаться в школе к первому уроку? Осталось заявок в этом месяце: ' + remaining + ' из ' + MONTHLY_LIMIT + '.';
+      limitInfo.style.color = '#4a5568';
+      limitWarning.style.display = 'none';
+      form.style.display = 'block';
+    } else {
+      limitInfo.textContent = 'Лимит заявок на этот месяц исчерпан.';
+      limitInfo.style.color = '#991b1b';
+      limitWarning.style.display = 'block';
+      form.style.display = 'none';
+    }
+  }
+
+  // === Отправка формы ===
   document.getElementById('teleportForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    // Проверка лимита перед отправкой
+    if (getRemaining() <= 0) {
+      alert('Лимит заявок на этот месяц исчерпан. Попробуйте в следующем месяце.');
+      updateLimitUI();
+      return;
+    }
+
     var input = document.getElementById('dateInput');
 
     if (!input.value) {
-      e.preventDefault();
       alert('Пожалуйста, выберите дату телепортации 📅');
       return;
     }
@@ -223,10 +322,6 @@
     btn.disabled = true;
     btn.textContent = 'Отправляем...';
 
-    // Отправляем форму на Formspree вручную через fetch,
-    // чтобы остаться на сайте и сразу показать страницу 3
-    e.preventDefault();
-
     var formData = new FormData(this);
 
     fetch(this.action, {
@@ -236,8 +331,25 @@
     })
     .then(function(response) {
       if (response.ok) {
+        // Увеличиваем счётчик заявок
+        var data = getStorageData();
+        data.count = data.count + 1;
+        saveStorageData(data);
+
         // Показываем выбранную дату на третьей странице
         document.getElementById('chosenDate').textContent = formatted;
+
+        // Показываем, сколько осталось
+        var remaining = getRemaining();
+        var remainingInfo = document.getElementById('remainingInfo');
+        if (remaining > 0) {
+          remainingInfo.textContent = 'У вас осталось ' + remaining + ' из ' + MONTHLY_LIMIT + ' заявок в этом месяце.';
+          remainingInfo.style.color = '#718096';
+        } else {
+          remainingInfo.textContent = 'Это была ваша последняя заявка в этом месяце. Следующая — в следующем месяце.';
+          remainingInfo.style.color = '#991b1b';
+        }
+
         showPage(3);
       } else {
         alert('Не удалось отправить заявку. Попробуйте ещё раз.');
@@ -251,6 +363,9 @@
       btn.textContent = 'Подтвердить дату';
     });
   });
+
+  // При загрузке страницы сразу обновляем счётчик (на случай, если лимит уже исчерпан)
+  updateLimitUI();
 </script>
 
 </body>
