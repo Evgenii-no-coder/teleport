@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Сертификат на телепортацию Никиты в школу</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 50px 40px;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    text-align: center;
+    animation: fadeIn 0.5s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .emoji {
+    font-size: 64px;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  h1 {
+    font-size: 26px;
+    color: #2d3748;
+    margin-bottom: 18px;
+    line-height: 1.35;
+  }
+
+  h2 {
+    font-size: 22px;
+    color: #2d3748;
+    margin-bottom: 18px;
+  }
+
+  p {
+    font-size: 16px;
+    color: #4a5568;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .highlight {
+    color: #764ba2;
+    font-weight: 700;
+  }
+
+  .date-box {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    padding: 14px 30px;
+    border-radius: 12px;
+    font-size: 22px;
+    font-weight: 700;
+    margin: 10px 0 25px;
+  }
+
+  input[type="date"] {
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    color: #2d3748;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input[type="date"]:focus {
+    border-color: #764ba2;
+  }
+
+  button {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    border: none;
+    padding: 16px 40px;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    width: 100%;
+  }
+
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(118, 75, 162, 0.4);
+  }
+
+  button:active {
+    transform: translateY(0);
+  }
+
+  button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .small-text {
+    font-size: 14px;
+    color: #718096;
+    margin-top: 25px;
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  .ps {
+    background: #f7fafc;
+    border-left: 4px solid #764ba2;
+    padding: 15px 20px;
+    border-radius: 8px;
+    text-align: left;
+    font-size: 15px;
+    color: #4a5568;
+    margin-top: 30px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- СТРАНИЦА 1: Приветствие -->
+  <div class="page active" id="page1">
+    <span class="emoji">🚀</span>
+    <h1>Сертификат на телепортацию Никиты в школу утром, к первому уроку</h1>
+    <p>Настоящий документ подтверждает ваше право <span class="highlight">не вставать рано</span>, пока Никита телепортируется в школу. Действует бессрочно (по будням).</p>
+    <button onclick="showPage(2)">Далее →</button>
+  </div>
+
+  <!-- СТРАНИЦА 2: Выбор даты и отправка формы -->
+  <div class="page" id="page2">
+    <span class="emoji">📅</span>
+    <h2>Выберите дату телепортации</h2>
+    <p>В какой день Никита должен оказаться в школе к первому уроку?</p>
+
+    <!-- ВАЖНО: замените ВАШ_ENDPOINT на URL из Formspree -->
+    <form id="teleportForm" action="https://formspree.io/f/ВАШ_ENDPOINT" method="POST">
+      <input type="date" id="dateInput" name="Выбранная дата" required>
+      <input type="hidden" name="Дата (читаемый вид)" id="formattedDateHidden">
+      <button type="submit" id="submitBtn">Подтвердить дату</button>
+    </form>
+  </div>
+
+  <!-- СТРАНИЦА 3: Подтверждение -->
+  <div class="page" id="page3">
+    <span class="emoji">✅</span>
+    <h2>Заявка принята!</h2>
+    <p>Вы выбрали дату:</p>
+    <div class="date-box" id="chosenDate">—</div>
+    <p>Скоро менеджер свяжется с вами для уточнения деталей.</p>
+    <div class="ps">
+      💡 Кстати, менеджер будет не против, если у вас будет настроение
+      <b>заехать к вам после выполнения заказа</b>. 😉
+    </div>
+    <p class="small-text">Спасибо за доверие! Никита уже греет телепорт.</p>
+  </div>
+
+</div>
+
+<script>
+  // Переключение между страницами
+  function showPage(num) {
+    document.querySelectorAll('.page').forEach(function(p) {
+      p.classList.remove('active');
+    });
+    document.getElementById('page' + num).classList.add('active');
+  }
+
+  // При отправке формы: проверяем дату, сохраняем читаемый вид, отправляем на Formspree
+  document.getElementById('teleportForm').addEventListener('submit', function(e) {
+    var input = document.getElementById('dateInput');
+
+    if (!input.value) {
+      e.preventDefault();
+      alert('Пожалуйста, выберите дату телепортации 📅');
+      return;
+    }
+
+    // Форматируем дату по-русски
+    var date = new Date(input.value + 'T00:00:00');
+    var options = { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' };
+    var formatted = date.toLocaleDateString('ru-RU', options);
+    formatted = formatted.charAt(0).toUpperCase() + formatted.slice(1);
+
+    // Записываем читаемую дату в скрытое поле
+    document.getElementById('formattedDateHidden').value = formatted;
+
+    // Показываем, что идёт отправка
+    var btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Отправляем...';
+
+    // Отправляем форму на Formspree вручную через fetch,
+    // чтобы остаться на сайте и сразу показать страницу 3
+    e.preventDefault();
+
+    var formData = new FormData(this);
+
+    fetch(this.action, {
+      method: 'POST',
+      body: formData,
+      headers: { 'Accept': 'application/json' }
+    })
+    .then(function(response) {
+      if (response.ok) {
+        // Показываем выбранную дату на третьей странице
+        document.getElementById('chosenDate').textContent = formatted;
+        showPage(3);
+      } else {
+        alert('Не удалось отправить заявку. Попробуйте ещё раз.');
+        btn.disabled = false;
+        btn.textContent = 'Подтвердить дату';
+      }
+    })
+    .catch(function() {
+      alert('Ошибка сети. Проверьте подключение и попробуйте снова.');
+      btn.disabled = false;
+      btn.textContent = 'Подтвердить дату';
+    });
+  });
+</script>
+
+</body>
+</html>
